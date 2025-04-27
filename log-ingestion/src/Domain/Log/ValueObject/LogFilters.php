@@ -4,23 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Log\ValueObject;
 
-final class LogFilters
+final readonly class LogFilters
 {
-    private ?array $serviceNames;
-    private ?int $statusCode;
-    private ?\DateTimeImmutable $startDate;
-    private ?\DateTimeImmutable $endDate;
-
     public function __construct(
-        ?array $serviceNames = null,
-        ?int $statusCode = null,
-        ?\DateTimeImmutable $startDate = null,
-        ?\DateTimeImmutable $endDate = null
+        private ?array              $serviceNames = null,
+        private ?int                $statusCode = null,
+        private ?\DateTimeImmutable $startDate = null,
+        private ?\DateTimeImmutable $endDate = null
     ) {
-        $this->serviceNames = $serviceNames;
-        $this->statusCode = $statusCode;
-        $this->startDate = $startDate;
-        $this->endDate = $endDate;
     }
 
     public function getServiceNames(): ?array

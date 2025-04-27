@@ -7,13 +7,10 @@ namespace Application\Log\UseCase;
 use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 
-class CountLogs
+readonly class CountLogs
 {
-    private LogEntryRepositoryInterface $repository;
-
-    public function __construct(LogEntryRepositoryInterface $repository)
+    public function __construct(private LogEntryRepositoryInterface $repository)
     {
-        $this->repository = $repository;
     }
 
     public function execute(LogFilters $filters): int

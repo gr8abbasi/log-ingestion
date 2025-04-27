@@ -11,22 +11,15 @@ use Application\Log\DLQ\DLQStrategyInterface;
 
 class KafkaMessageConsumer
 {
-    private KafkaConsumer $consumer;
-    private LogMessageService $logService;
-    private DLQStrategyInterface $dlqStrategy;
     private bool $running = true;
 
     public function __construct(
-        KafkaConsumer        $consumer,
-        LogMessageService    $logService,
-        DLQStrategyInterface $dlqStrategy,
+        private KafkaConsumer        $consumer,
+        private LogMessageService    $logService,
+        private DLQStrategyInterface $dlqStrategy,
         string               $topic
     )
     {
-        $this->consumer = $consumer;
-        $this->logService = $logService;
-        $this->dlqStrategy = $dlqStrategy;
-
         $this->consumer->subscribe([$topic]);
 
         if (extension_loaded('pcntl')) {
@@ -52,7 +45,7 @@ class KafkaMessageConsumer
 
             try {
                 echo "Kafka started consuming message...\n";
-                $payload = json_decode($message->payload, true, 512, JSON_THROW_ON_ERROR);
+                $payload = json_decode($message->payload, true);
                 $this->logService->process($payload);
                 $this->consumer->commitAsync($message);
                 echo "Kafka consumed message successfully...\n";

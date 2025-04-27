@@ -18,7 +18,7 @@ class LogMessageService
 
     public function process(array $data): void
     {
-        $entry = new LogEntry(
+        $logEntry = new LogEntry(
             $data['service'] ?? 'unknown',
             new \DateTimeImmutable($data['startDate'] ?? 'now'),
             new \DateTimeImmutable($data['endDate'] ?? 'now'),
@@ -27,7 +27,7 @@ class LogMessageService
             (int)($data['statusCode'] ?? 200)
         );
 
-        $this->batch[] = $entry;
+        $this->batch[] = $logEntry;
 
         if (\count($this->batch) >= $this->batchSize) {
             $this->flush();

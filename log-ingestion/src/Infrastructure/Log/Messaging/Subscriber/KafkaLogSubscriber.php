@@ -23,14 +23,14 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
 
     public function onLogEntryReceived(LogLineReceivedEvent $event): void
     {
-        $entry = $event->logEntry;
+        $logEntry = $event->logEntry;
 
         $this->publisher->publish('log.alerts', [
-            'service' => $entry->service,
-            'timestamp' => $entry->startDate->format(DATE_ATOM),
-            'method' => $entry->method,
-            'path' => $entry->path,
-            'statusCode' => $entry->statusCode,
+            'service' => $logEntry->service,
+            'timestamp' => $logEntry->startDate->format(DATE_ATOM),
+            'method' => $logEntry->method,
+            'path' => $logEntry->path,
+            'statusCode' => $logEntry->statusCode,
         ]);
     }
 }

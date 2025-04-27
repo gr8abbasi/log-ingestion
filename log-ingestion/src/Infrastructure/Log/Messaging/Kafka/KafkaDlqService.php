@@ -11,14 +11,12 @@ use RdKafka\Producer;
 class KafkaDlqService implements DLQStrategyInterface
 {
     private Producer $producer;
-    private string $dlqTopic;
 
-    public function __construct(string $brokers, string $dlqTopic = 'log.alerts.dlq')
+    public function __construct(string $brokers, private string $dlqTopic = 'log.alerts.dlq')
     {
         $conf = new \RdKafka\Conf();
         $conf->set('metadata.broker.list', $brokers);
         $this->producer = new Producer($conf);
-        $this->dlqTopic = $dlqTopic;
     }
 
     public function handle(Message $message, \Throwable $exception): void

@@ -7,7 +7,7 @@ namespace Infrastructure\Log\Parser;
 use Domain\Log\ValueObject\LogEntry;
 use Infrastructure\Log\Offset\LogOffsetTracker;
 
-class SimpleLogTailer implements LogParserInterface
+class SimpleLogParser implements LogParserInterface
 {
     private ?\SplFileObject $handle = null;
     private ?int $lastInode = null;

@@ -4,14 +4,15 @@ namespace Infrastructure\Log\Tailer;
 
 use Domain\Log\Tailer\LogTailerInterface;
 use Domain\Log\Entity\LogEntry;
-use Infrastructure\Log\Parser\SimpleLogTailer;
+use Infrastructure\Log\Parser\SimpleLogParser;
 
-class LogParserTailer implements LogTailerInterface
+readonly class LogParserTailer implements LogTailerInterface
 {
     public function __construct(
-        private SimpleLogTailer $parser,
+        private SimpleLogParser $parser,
         private string          $logFilePath
-    ) {}
+    ) {
+    }
 
     /**
      * @return \Generator<LogEntry>

@@ -29,7 +29,7 @@ class KafkaMessagePublisher implements MessagePublisherInterface
             $this->getTopic($topic)->produce(RD_KAFKA_PARTITION_UA, 0, $message);
             $this->producer->poll(0);
         } catch (\Throwable $e) {
-            // Log and send to DLQ
+            // Send to DLQ
             $errorPayload = [
                 'originalTopic' => $topic,
                 'error' => $e->getMessage(),

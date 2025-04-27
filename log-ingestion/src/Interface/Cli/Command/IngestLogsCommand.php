@@ -11,8 +11,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'app:ingest-logs',
-    description: 'Parses and ingests logs from the log file into the database.'
+    name: 'log-ingestion:ingest-logs',
+    description: 'Parses and ingests logs from the log file and fire event.'
 )]
 class IngestLogsCommand extends Command
 {
@@ -24,10 +24,9 @@ class IngestLogsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $output->writeln('<info>🚀 Ingesting log entries...</info>');
+        $output->writeln('<info>Ingesting log entries...</info>');
         
         try {
-//            $this->ingestLogs->execute();
             $this->tailLogService->execute();
             $output->writeln('<info> Ingestion complete.</info>');
             return Command::SUCCESS;

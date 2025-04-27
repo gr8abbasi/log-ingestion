@@ -9,11 +9,12 @@ use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-class LogEntryRepository implements LogEntryRepositoryInterface
+readonly class LogEntryRepository implements LogEntryRepositoryInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
-    ) {}
+        private EntityManagerInterface $entityManager
+    ) {
+    }
 
     public function save(LogEntry $logEntry): void
     {

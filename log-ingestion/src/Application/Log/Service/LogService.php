@@ -7,13 +7,10 @@ namespace Application\Log\Service;
 use Application\Log\UseCase\CountLogs;
 use Domain\Log\ValueObject\LogFilters;
 
-class LogService
+readonly class LogService
 {
-    private CountLogs $countLogs;
-
-    public function __construct(CountLogs $countLogs)
+    public function __construct(private CountLogs $countLogs)
     {
-        $this->countLogs = $countLogs;
     }
 
     public function countLogs(LogFilters $filters): int
