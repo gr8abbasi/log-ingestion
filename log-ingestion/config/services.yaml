@@ -1,0 +1,124 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    log_ingestion.log_file: '%kernel.project_dir%/data/logs.log'
+    kafka_brokers: 'kafka:9092'
+    topic_name: 'log.alerts'
+    dlq_topic: 'log.alerts.dlq'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            string $logFilePath: '%log_ingestion.log_file%'
+            string $brokers: '%kafka_brokers%'
+            string $topic: '%topic_name%'
+            string $dlqTopic: '%dlq_topic%'
+
+    App\Parser\LogParserInterface: '@App\Parser\SimpleLogParser'
+    # App\Repository\LogEntryRepositoryInterface: '@App\Repository\LogEntryRepository'
+
+    App\EventListener\ExceptionListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception }
+    
+    Interface\Http\Request\LogRequestResolver:
+        tags:
+            - { name: 'controller.argument_value_resolver' }
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    # App\:
+    #     resource: '../src/'
+    #     exclude:
+    #         - '../src/DependencyInjection/'
+    #         - '../src/Entity/'
+    #         - '../src/Kernel.php'
+
+    # App\Service\LogIngestor: ~
+
+    # Application\Log\Service\LogService: ~
+    # Interface\Http\Controller\LogController:
+    #     arguments:
+    #         $logService: '@Application\Log\Service\LogService'
+
+    Infrastructure\Log\Tailer\LogParserTailer:
+        arguments:
+            $parser: '@Infrastructure\Log\Parser\SimpleLogParser'
+            $logFilePath: '%log_ingestion.log_file%'
+
+    Domain\Log\Tailer\LogTailerInterface: '@Infrastructure\Log\Tailer\LogParserTailer'
+
+    Infrastructure\Log\Messaging\Kafka\KafkaMessagePublisher:
+        arguments:
+            $brokers: '%kafka_brokers%'
+            $dlqTopic: '%dlq_topic%'
+
+    Domain\Log\Messaging\MessagePublisherInterface: '@Infrastructure\Log\Messaging\Kafka\KafkaMessagePublisher'
+
+    Infrastructure\Log\Messaging\Kafka\KafkaMessageConsumer:
+        arguments:
+            $consumer: '@kafka.consumer'
+            $logService: '@Application\Log\Service\LogMessageService'
+            $dlqStrategy: '@Infrastructure\Log\Messaging\Kafka\KafkaDlqService'
+            $topic: '%topic_name%'
+
+    kafka.consumer:
+        class: RdKafka\KafkaConsumer
+        factory: [ 'Infrastructure\Log\Messaging\Kafka\KafkaClientFactory', 'createConsumer' ]
+        arguments:
+            $brokers: '%kafka_brokers%'
+
+    RdKafka\KafkaConsumer: '@kafka.consumer'
+
+    Infrastructure\Log\Messaging\Kafka\KafkaDlqService:
+        arguments:
+            $brokers: '%kafka_brokers%'
+            $dlqTopic: '%dlq_topic%'
+
+    Application\Log\Service\LogMessageService:
+        arguments:
+            $batchSize: 10
+
+    Interface\Cli\Command\ConsumeLogsCommand:
+        arguments:
+            $consumer: '@Infrastructure\Log\Messaging\Kafka\KafkaMessageConsumer'
+        tags: [ 'console.command' ]
+
+    Infrastructure\Log\Messaging\Subscriber\KafkaLogSubscriber:
+        tags:
+            - { name: 'kernel.event_subscriber' }
+
+    Infrastructure\:
+        resource: '../src/Infrastructure/'
+        exclude: '../src/Infrastructure/**/Tests/'
+
+    Interface\:
+        resource: '../src/Interface/'
+        exclude: '../src/Interface/**/Tests/'
+    
+    Application\:
+        resource: '../src/Application/'
+        exclude: '../src/Application/**/Tests/'
+
+    Domain\:
+        resource: '../src/Domain/'
+        exclude: '../src/Domain/**/Tests/'
+    
+    Interface\Http\Controller\:
+        resource: '../src/Interface/Http/Controller/'
+        public: true
+        tags: ['controller.service_arguments']
+        autowire: true
+        autoconfigure: true
+
+    # Domain layer interface binding
+    Domain\Log\Repository\LogEntryRepositoryInterface: '@Infrastructure\Log\Persistence\Repository\LogEntryRepository'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

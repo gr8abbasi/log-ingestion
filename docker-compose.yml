@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      args:
+        DATABASE_URL: "mysql://logingestion:logingestion@mysql:3306/log_ingestion"
+    container_name: log_ingestion_php
+    volumes:
+      - ./log-ingestion:/var/www/log-ingestion
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - kafka
+    environment:
+      - DATABASE_URL=mysql://logingestion:logingestion@mysql:3306/log_ingestion
+      - APP_ENV=dev
+    working_dir: /var/www/log-ingestion
+    entrypoint: ["sh", "/entrypoint.sh"]
+
+  mysql:
+    image: mysql:8
+    container_name: log_ingestion_mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=log_ingestion
+      - MYSQL_USER=logingestion
+      - MYSQL_PASSWORD=logingestion
+    ports:
+      - "3310:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  kafka:
+    image: bitnami/kafka:3.4.0
+    container_name: log_ingestion_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ENABLE_KRAFT=no
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: log_ingestion_zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+
+volumes:
+  db_data:
