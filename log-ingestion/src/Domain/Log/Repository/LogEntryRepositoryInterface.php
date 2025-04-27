@@ -11,5 +11,7 @@ interface LogEntryRepositoryInterface
 {
     public function save(LogEntry $logEntry): void;
 
+    public function flush(): void;
+
     public function countByFilters(LogFilters $filters): int;
 }

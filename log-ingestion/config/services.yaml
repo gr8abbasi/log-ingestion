@@ -5,9 +5,9 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     log_ingestion.log_file: '%kernel.project_dir%/data/logs.log'
-    kafka_brokers: 'kafka:9092'
-    topic_name: 'log.alerts'
-    dlq_topic: 'log.alerts.dlq'
+    kafka_brokers: '%env(KAFKA_BROKERS)%'
+    topic_name: '%env(KAFKA_TOPIC_NAME)%'
+    dlq_topic: '%env(KAFKA_DLQ_TOPIC_NAME)%'
 
 services:
     # default configuration for services in *this* file

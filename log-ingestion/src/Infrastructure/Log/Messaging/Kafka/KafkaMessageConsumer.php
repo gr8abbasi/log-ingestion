@@ -38,7 +38,7 @@ class KafkaMessageConsumer
 
     public function consume(): void
     {
-        echo "📡 Waiting for Kafka messages...\n";
+        echo "Waiting for Kafka messages...\n";
 
         while ($this->running) {
             $message = $this->consumer->consume(2000);
@@ -51,15 +51,17 @@ class KafkaMessageConsumer
             }
 
             try {
+                echo "Kafka started consuming message...\n";
                 $payload = json_decode($message->payload, true, 512, JSON_THROW_ON_ERROR);
                 $this->logService->process($payload);
                 $this->consumer->commitAsync($message);
+                echo "Kafka consumed message successfully...\n";
             } catch (\Throwable $e) {
                 $this->dlqStrategy->handle($message, $e);
             }
         }
 
         $this->logService->flush();
-        echo "🛑 Consumer stopped gracefully.\n";
+        echo "Consumer stopped gracefully.\n";
     }
 }

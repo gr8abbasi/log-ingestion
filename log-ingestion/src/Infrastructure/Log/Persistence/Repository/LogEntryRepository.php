@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Persistence\Repository;
 
-use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Entity\LogEntry;
-use Doctrine\ORM\EntityManagerInterface;
+use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 class LogEntryRepository implements LogEntryRepositoryInterface
 {
-    public function __construct(private readonly EntityManagerInterface $entityManager)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager
+    ) {}
+
+    public function save(LogEntry $logEntry): void
     {
+        $this->entityManager->persist($logEntry);
     }
 
-    public function save(LogEntry $entry): void
+    public function flush(): void
     {
-        $this->entityManager->persist($entry);
         $this->entityManager->flush();
     }
 

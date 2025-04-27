@@ -34,6 +34,6 @@ class KafkaDlqService implements DLQStrategyInterface
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($payload));
         $this->producer->poll(0);
 
-        echo "📤 Sent to DLQ: {$this->dlqTopic}\n";
+        echo "Sent to DLQ: {$this->dlqTopic}\n";
     }
 }
