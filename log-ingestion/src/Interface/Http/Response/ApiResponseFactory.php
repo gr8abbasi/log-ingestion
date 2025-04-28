@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Interface\Http\Response;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ApiResponseFactory
 {
@@ -16,11 +17,12 @@ class ApiResponseFactory
         ], JsonResponse::HTTP_OK);
     }
 
-    public static function error(string $message, int $code): JsonResponse
+    public static function error(\Throwable $error): JsonResponse
     {
+        $statusCode = $error instanceof HttpExceptionInterface ? $error->getStatusCode() : 500;
         return new JsonResponse([
             'status' => 'error',
-            'message' => $message,
-        ], $code);
+            'message' => $error->getMessage(),
+        ], $statusCode);
     }
 }

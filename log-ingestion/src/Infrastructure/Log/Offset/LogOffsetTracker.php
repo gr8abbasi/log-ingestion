@@ -26,6 +26,9 @@ class LogOffsetTracker
     public function updateOffset(int $offset): void
     {
         $this->lastOffset = $offset;
-        file_put_contents($this->offsetFile, (string)$offset, LOCK_EX);
+
+        $lock = getenv('APP_ENV') === 'dev' ? 0 : LOCK_EX; //TODO: Use configuration file instead
+
+        file_put_contents($this->offsetFile, (string)$offset, $lock);
     }
 }

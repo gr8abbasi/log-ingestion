@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Application\Log\Service;
 
-use Application\Log\UseCase\CountLogs;
+use Application\Log\UseCase\CountLogsInterface;
 use Domain\Log\ValueObject\LogFilters;
 
-readonly class LogService
+readonly class LogQueryQueryService implements LogQueryServiceInterface
 {
-    public function __construct(private CountLogs $countLogs)
+    public function __construct(private CountLogsInterface $countLogs)
     {
     }
 

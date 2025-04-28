@@ -7,7 +7,7 @@ namespace Application\Log\Service;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 
-class LogMessageService
+class LogEntryPersister
 {
     private array $batch = [];
 

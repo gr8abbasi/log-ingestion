@@ -8,6 +8,8 @@ framework:
     #esi: true
     #fragments: true
 
+    test: true
+
 when@test:
     framework:
         test: true

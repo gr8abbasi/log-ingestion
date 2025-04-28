@@ -6,7 +6,7 @@ use Domain\Log\Tailer\LogTailerInterface;
 use Domain\Log\Entity\LogEntry;
 use Infrastructure\Log\Parser\SimpleLogParser;
 
-readonly class LogParserTailer implements LogTailerInterface
+readonly class LogTailer implements LogTailerInterface
 {
     public function __construct(
         private SimpleLogParser $parser,

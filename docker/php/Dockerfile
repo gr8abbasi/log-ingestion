@@ -22,23 +22,21 @@ RUN mkdir -p /usr/local/etc/php/cli/conf.d/ \
 # Copy composer from official Composer image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create Symfony in a temp build directory
-RUN composer create-project symfony/skeleton /symfony-template
+# Set the working directory to the root of your project
+WORKDIR /var/www/log-ingestion
 
-WORKDIR /symfony-template
+# Copy the entire project (including 'log-ingestion' folder and composer.json)
+COPY log-ingestion /var/www/log-ingestion
 
-# Install Symfony dependencies
-RUN composer require \
-    symfony/orm-pack \
-    symfony/maker-bundle \
-    symfony/runtime \
-    symfony/serializer-pack \
-    symfony/http-client \
-    symfony/validator \
-    ramsey/uuid-doctrine
+# Install Symfony and other dependencies
+RUN composer install --no-dev --optimize-autoloader --prefer-dist
+
+# Install PHPUnit for testing
+RUN composer require --dev phpunit/phpunit:^9.5
+RUN composer require --dev symfony/phpunit-bridge
 
 # Entrypoint setup
-COPY /docker/php/entrypoint.sh /entrypoint.sh
+COPY docker/php/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 8000

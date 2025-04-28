@@ -8,7 +8,7 @@ use Domain\Log\Tailer\LogTailerInterface;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-readonly class TailLogService
+readonly class LogTailEventPublisher implements LogTailEventPublisherInterface
 {
     public function __construct(
         private LogTailerInterface $logTailer,

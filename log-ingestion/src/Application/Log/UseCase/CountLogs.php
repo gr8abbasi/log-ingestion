@@ -7,7 +7,7 @@ namespace Application\Log\UseCase;
 use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 
-readonly class CountLogs
+readonly class CountLogs implements CountLogsInterface
 {
     public function __construct(private LogEntryRepositoryInterface $repository)
     {

@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Infrastructure\Log\Messaging\Subscriber;
+
+use Domain\Log\Tailer\Event\LogLineReceivedEvent;
+use Domain\Log\ValueObject\LogEntry;
+use Infrastructure\Log\Messaging\Subscriber\KafkaLogSubscriber;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
+use Domain\Log\Messaging\MessagePublisherInterface;
+
+class KafkaLogSubscriberTest extends TestCase
+{
+    private MockObject&MessagePublisherInterface $publisherMock;
+    private KafkaLogSubscriber $subscriber;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->publisherMock = $this->createMock(MessagePublisherInterface::class);
+
+        $this->subscriber = new KafkaLogSubscriber($this->publisherMock);
+    }
+
+    public function testOnLogEntryReceivedPublishesCorrectMessage(): void
+    {
+        $logEntry = new LogEntry(
+            service: 'my-service',
+            startDate: new \DateTimeImmutable('2025-04-28T12:34:56Z'),
+            endDate: new \DateTimeImmutable('2025-04-28T12:35:56Z'),
+            method: 'GET',
+            path: '/api/v1/resource',
+            statusCode: 200
+        );
+
+        $event = new LogLineReceivedEvent($logEntry);
+
+        $this->publisherMock->expects($this->once())
+            ->method('publish')
+            ->with(
+                $this->equalTo('log.alerts'),
+                $this->callback(function (array $payload) use ($logEntry) {
+                    return $payload['service'] === $logEntry->service
+                        && $payload['timestamp'] === $logEntry->startDate->format(DATE_ATOM)
+                        && $payload['method'] === $logEntry->method
+                        && $payload['path'] === $logEntry->path
+                        && $payload['statusCode'] === $logEntry->statusCode;
+                })
+            );
+
+        $this->subscriber->onLogEntryReceived($event);
+    }
+}

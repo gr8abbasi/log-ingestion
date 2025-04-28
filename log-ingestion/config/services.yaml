@@ -29,7 +29,7 @@ services:
     
     Interface\Http\Request\LogRequestResolver:
         tags:
-            - { name: 'controller.argument_value_resolver' }
+            - { name: 'controller.argument_value_resolver', priority: 50 }
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -47,12 +47,12 @@ services:
     #     arguments:
     #         $logService: '@Application\Log\Service\LogService'
 
-    Infrastructure\Log\Tailer\LogParserTailer:
+    Infrastructure\Log\Tailer\LogTailer:
         arguments:
             $parser: '@Infrastructure\Log\Parser\SimpleLogParser'
             $logFilePath: '%log_ingestion.log_file%'
 
-    Domain\Log\Tailer\LogTailerInterface: '@Infrastructure\Log\Tailer\LogParserTailer'
+    Domain\Log\Tailer\LogTailerInterface: '@Infrastructure\Log\Tailer\LogTailer'
 
     Infrastructure\Log\Messaging\Kafka\KafkaMessagePublisher:
         arguments:

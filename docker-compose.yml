@@ -58,5 +58,19 @@ services:
     environment:
       ALLOW_ANONYMOUS_LOGIN: "yes"
 
+  phpunit:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: log_ingestion_phpunit
+    volumes:
+      - ./log-ingestion:/var/www/log-ingestion
+    environment:
+      - APP_ENV=dev
+    entrypoint: [ "vendor/bin/phpunit" ]
+    depends_on:
+      - mysql
+      - kafka
+
 volumes:
   db_data:

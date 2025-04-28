@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Interface\Cli\Command;
 
-use Application\Log\Service\TailLogService;
+use Application\Log\Service\LogTailEventPublisherInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class IngestLogsCommand extends Command
 {
     public function __construct(
-        private readonly TailLogService $tailLogService
+        private readonly LogTailEventPublisherInterface $tailLogService
     ) {
         parent::__construct();
     }

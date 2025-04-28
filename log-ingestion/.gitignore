@@ -8,8 +8,15 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
-/.DS_Store
-/.idea/
 /src/.DS_Store
 /src/Interface/.DS_Store
 /src/Interface/Http/.DS_Store
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###

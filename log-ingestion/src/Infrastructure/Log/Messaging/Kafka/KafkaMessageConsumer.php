@@ -6,7 +6,7 @@ namespace Infrastructure\Log\Messaging\Kafka;
 
 use RdKafka\KafkaConsumer;
 use RdKafka\Message;
-use Application\Log\Service\LogMessageService;
+use Application\Log\Service\LogEntryPersister;
 use Application\Log\DLQ\DLQStrategyInterface;
 
 class KafkaMessageConsumer
@@ -15,9 +15,9 @@ class KafkaMessageConsumer
 
     public function __construct(
         private KafkaConsumer        $consumer,
-        private LogMessageService    $logService,
+        private LogEntryPersister    $logService,
         private DLQStrategyInterface $dlqStrategy,
-        string               $topic
+        string                       $topic
     )
     {
         $this->consumer->subscribe([$topic]);
