@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Tests\Unit\Infrastructure\Log\Persistence\Repository;
 
 use Application\Log\Exception\InvalidLogEntryException;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\Query\QueryException;
+use Doctrine\ORM\TransactionRequiredException;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\ValueObject\LogFilters;
 use Doctrine\ORM\EntityManagerInterface;
@@ -60,7 +64,7 @@ class LogEntryRepositoryTest extends TestCase
         // Simulate an error during the persist operation
         $em->expects($this->once())
             ->method('persist')
-            ->willThrowException(new \Doctrine\ORM\OptimisticLockException('Optimistic lock error', new \Doctrine\ORM\Mapping\ClassMetadata('Entity')));
+            ->willThrowException(new OptimisticLockException('Optimistic lock error', new ClassMetadata('Entity')));
 
         $repo = new LogEntryRepository($em);
         $repo->save($logEntry);
@@ -83,7 +87,7 @@ class LogEntryRepositoryTest extends TestCase
         // Simulate an error during the flush operation
         $em->expects($this->once())
             ->method('flush')
-            ->willThrowException(new \Doctrine\ORM\TransactionRequiredException('Transaction required error'));
+            ->willThrowException(new TransactionRequiredException('Transaction required error'));
 
         $repo = new LogEntryRepository($em);
         $repo->flush();
@@ -136,7 +140,7 @@ class LogEntryRepositoryTest extends TestCase
         // Simulate a query exception
         $mockQuery->expects($this->once())
             ->method('getSingleScalarResult')
-            ->willThrowException(new \Doctrine\ORM\Query\QueryException('Query error'));
+            ->willThrowException(new QueryException('Query error'));
 
         $qb = $this->getMockBuilder(QueryBuilder::class)
             ->disableOriginalConstructor()
