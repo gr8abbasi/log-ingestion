@@ -64,7 +64,7 @@ services:
     Infrastructure\Log\Messaging\Kafka\KafkaMessageConsumer:
         arguments:
             $consumer: '@kafka.consumer'
-            $logService: '@Application\Log\Service\LogMessageService'
+            $logService: '@Application\Log\Service\LogEntryPersister'
             $dlqStrategy: '@Infrastructure\Log\Messaging\Kafka\KafkaDlqService'
             $topic: '%topic_name%'
 
@@ -81,7 +81,7 @@ services:
             $brokers: '%kafka_brokers%'
             $dlqTopic: '%dlq_topic%'
 
-    Application\Log\Service\LogMessageService:
+    Application\Log\Service\LogEntryPersister:
         arguments:
             $batchSize: 10
 

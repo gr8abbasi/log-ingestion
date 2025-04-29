@@ -8,6 +8,8 @@ use Domain\Log\Entity\LogEntry;
 use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Infrastructure\Log\Persistence\Doctrine\Mapper\LogEntryMapper;
+use Infrastructure\Log\Persistence\Doctrine\Entity\LogEntryDoctrine;
 
 readonly class LogEntryRepository implements LogEntryRepositoryInterface
 {
@@ -18,7 +20,7 @@ readonly class LogEntryRepository implements LogEntryRepositoryInterface
 
     public function save(LogEntry $logEntry): void
     {
-        $this->entityManager->persist($logEntry);
+        $this->entityManager->persist(LogEntryMapper::toDoctrine($logEntry));
     }
 
     public function flush(): void
@@ -31,7 +33,7 @@ readonly class LogEntryRepository implements LogEntryRepositoryInterface
         $qb = $this->entityManager->createQueryBuilder();
 
         $qb->select('COUNT(l.id)')
-            ->from(LogEntry::class, 'l');
+            ->from(LogEntryDoctrine::class, 'l');
 
         if ($filters->getServiceNames()) {
             $qb->andWhere('l.service IN (:services)')

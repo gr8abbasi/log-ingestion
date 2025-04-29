@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Messaging\Subscriber;
 
+use Domain\Log\Enum\LogEntry;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Domain\Log\Messaging\MessagePublisherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -25,12 +26,13 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
     {
         $logEntry = $event->logEntry;
 
-        $this->publisher->publish('log.alerts', [
-            'service' => $logEntry->service,
-            'timestamp' => $logEntry->startDate->format(DATE_ATOM),
-            'method' => $logEntry->method,
-            'path' => $logEntry->path,
-            'statusCode' => $logEntry->statusCode,
+        $this->publisher->publish('log.alerts', [ //TODO: Get topic name from configuration/constant
+            LogEntry::SERVICE->value => $logEntry->service,
+            LogEntry::START_DATE->value => $logEntry->startDate->format(DATE_ATOM),
+            LogEntry::END_DATE->value => $logEntry->endDate->format(DATE_ATOM),
+            LogEntry::METHOD->value => $logEntry->method,
+            LogEntry::PATH->value => $logEntry->path,
+            LogEntry::STATUS_CODE->value => $logEntry->statusCode,
         ]);
     }
 }

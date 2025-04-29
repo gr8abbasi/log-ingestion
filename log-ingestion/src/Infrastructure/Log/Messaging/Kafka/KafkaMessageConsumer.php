@@ -31,30 +31,29 @@ class KafkaMessageConsumer
 
     public function consume(): void
     {
-        echo "Waiting for Kafka messages...\n";
+        echo "Waiting for Kafka messages...\n"; //TODO: use proper logging
 
         while ($this->running) {
             $message = $this->consumer->consume(2000);
 
             if ($message === null || $message->err) {
                 if ($message && $message->err) {
-                    echo "[Kafka Error] {$message->errstr()}\n";
+                    echo "[Kafka Error] {$message->errstr()}\n"; //TODO: use proper logging
                 }
                 continue;
             }
 
             try {
-                echo "Kafka started consuming message...\n";
                 $payload = json_decode($message->payload, true);
                 $this->logService->process($payload);
                 $this->consumer->commitAsync($message);
-                echo "Kafka consumed message successfully...\n";
+                echo "Kafka consumed message successfully...\n"; //TODO: use proper logging
             } catch (\Throwable $e) {
                 $this->dlqStrategy->handle($message, $e);
             }
         }
 
         $this->logService->flush();
-        echo "Consumer stopped gracefully.\n";
+        echo "Consumer stopped gracefully.\n"; //TODO: use proper logging
     }
 }
