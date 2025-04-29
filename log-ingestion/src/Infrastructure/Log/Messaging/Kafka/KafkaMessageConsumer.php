@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Messaging\Kafka;
 
+use Application\Log\DTO\LogEntryMessageDto;
 use RdKafka\KafkaConsumer;
 use RdKafka\Message;
 use Application\Log\Service\LogEntryPersister;
@@ -45,7 +46,8 @@ class KafkaMessageConsumer
 
             try {
                 $payload = json_decode($message->payload, true);
-                $this->logService->process($payload);
+                $logEntryDto = LogEntryMessageDto::fromArray($payload);
+                $this->logService->process($logEntryDto);
                 $this->consumer->commitAsync($message);
                 echo "Kafka consumed message successfully...\n"; //TODO: use proper logging
             } catch (\Throwable $e) {

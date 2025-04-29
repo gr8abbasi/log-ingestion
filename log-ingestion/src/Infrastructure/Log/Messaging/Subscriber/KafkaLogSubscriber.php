@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Messaging\Subscriber;
 
+use Application\Log\DTO\LogEntryMessageDto;
 use Domain\Log\Enum\LogEntry;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Domain\Log\Messaging\MessagePublisherInterface;
@@ -25,14 +26,16 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
     public function onLogEntryReceived(LogLineReceivedEvent $event): void
     {
         $logEntry = $event->logEntry;
+        $logDto = new LogEntryMessageDto(
+            $logEntry->service,
+            $logEntry->startDate,
+            $logEntry->endDate,
+            $logEntry->method,
+            $logEntry->path,
+            $logEntry->statusCode,
+        );
 
-        $this->publisher->publish('log.alerts', [ //TODO: Get topic name from configuration/constant
-            LogEntry::SERVICE->value => $logEntry->service,
-            LogEntry::START_DATE->value => $logEntry->startDate->format(DATE_ATOM),
-            LogEntry::END_DATE->value => $logEntry->endDate->format(DATE_ATOM),
-            LogEntry::METHOD->value => $logEntry->method,
-            LogEntry::PATH->value => $logEntry->path,
-            LogEntry::STATUS_CODE->value => $logEntry->statusCode,
-        ]);
+        //TODO: Get topic name from configuration/constant
+        $this->publisher->publish('log.alerts', $logDto);
     }
 }

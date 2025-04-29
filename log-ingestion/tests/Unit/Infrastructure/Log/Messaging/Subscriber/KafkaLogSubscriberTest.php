@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Infrastructure\Log\Messaging\Subscriber;
 
+use Application\Log\DTO\LogEntryMessageDto;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Domain\Log\ValueObject\LogEntry;
 use Infrastructure\Log\Messaging\Subscriber\KafkaLogSubscriber;
@@ -42,12 +43,13 @@ class KafkaLogSubscriberTest extends TestCase
             ->method('publish')
             ->with(
                 $this->equalTo('log.alerts'),
-                $this->callback(function (array $payload) use ($logEntry) {
-                    return $payload['service'] === $logEntry->service
-                        && $payload['timestamp'] === $logEntry->startDate->format(DATE_ATOM)
-                        && $payload['method'] === $logEntry->method
-                        && $payload['path'] === $logEntry->path
-                        && $payload['statusCode'] === $logEntry->statusCode;
+                $this->callback(function (LogEntryMessageDto $logDto) use ($logEntry) {
+                    return $logDto->getService() === $logEntry->service
+                        && $logDto->getStartDate() == $logEntry->startDate
+                        && $logDto->getEndDate() == $logEntry->endDate
+                        && $logDto->getMethod() === $logEntry->method
+                        && $logDto->getPath() === $logEntry->path
+                        && $logDto->getStatusCode() === $logEntry->statusCode;
                 })
             );
 

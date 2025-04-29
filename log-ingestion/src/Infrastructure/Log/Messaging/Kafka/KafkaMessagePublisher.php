@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Messaging\Kafka;
 
+use Application\Log\DTO\LogEntryMessageDto;
+use Application\Log\DTO\LogEntryDLQDto;
 use Domain\Log\Messaging\MessagePublisherInterface;
 use RdKafka\Producer;
 use RdKafka\ProducerTopic;
@@ -21,22 +23,34 @@ class KafkaMessagePublisher implements MessagePublisherInterface
         $this->producer = $clientFactory::createProducer($brokers);
     }
 
-    public function publish(string $topic, array $payload): void
+    public function publish(string $topic, LogEntryMessageDto $logDto): void
     {
-        $message = json_encode($payload);
+        $message = json_encode($logDto->toArray());
 
         try {
             $this->getTopic($topic)->produce(RD_KAFKA_PARTITION_UA, 0, $message);
             $this->producer->poll(0);
         } catch (\Throwable $e) {
-            // Send to DLQ
-            $errorPayload = [
-                'originalTopic' => $topic,
-                'error' => $e->getMessage(),
-                'failedMessage' => $payload,
-                'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            ];
-            $this->getTopic($this->dlqTopic)->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($errorPayload));
+            $this->publishToDLQ($topic, $e, $logDto);
+        }
+    }
+
+    private function publishToDLQ(string $originalTopic, \Throwable $e, LogEntryMessageDto $logDto): void
+    {
+        $errorPayload = new LogEntryDLQDto(
+            $originalTopic,
+            $e->getMessage(),
+            $logDto->toArray(),
+            (new \DateTimeImmutable())->format(DATE_ATOM)
+        );
+
+        $message = json_encode($errorPayload->toArray());
+
+        try {
+            $this->getTopic($this->dlqTopic)->produce(RD_KAFKA_PARTITION_UA, 0, $message);
+            $this->producer->poll(0);
+        } catch (\Throwable $e) {
+            echo "[DLQ Error] Failed to publish to DLQ: " . $e->getMessage() . "\n";
         }
     }
 

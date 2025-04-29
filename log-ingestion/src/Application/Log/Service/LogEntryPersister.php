@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Application\Log\Service;
 
+use Application\Log\DTO\LogEntryMessageDto;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 
@@ -16,15 +17,15 @@ class LogEntryPersister
         private readonly int $batchSize = 10
     ) {}
 
-    public function process(array $data): void
+    public function process(LogEntryMessageDto $logDto): void
     {
         $logEntry = new LogEntry(
-            $data['service'] ?? 'unknown',
-            new \DateTimeImmutable($data['startDate'] ?? 'now'),
-            new \DateTimeImmutable($data['endDate'] ?? 'now'),
-            $data['method'] ?? 'GET',
-            $data['path'] ?? '/',
-            (int)($data['statusCode'] ?? 200)
+            $logDto->getService(),
+            $logDto->getStartDate(),
+            $logDto->getEndDate(),
+            $logDto->getMethod(),
+            $logDto->getPath(),
+            $logDto->getStatusCode()
         );
 
         $this->batch[] = $logEntry;

@@ -9,6 +9,7 @@ use Domain\Log\ValueObject\LogFilters;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
+use Infrastructure\Log\Persistence\Doctrine\Entity\LogEntryDoctrine;
 use Infrastructure\Log\Persistence\Repository\LogEntryRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -16,10 +17,26 @@ class LogEntryRepositoryTest extends TestCase
 {
     public function testSavePersistsLogEntry(): void
     {
-        $logEntry = $this->createMock(LogEntry::class);
+        $logEntry = new LogEntry(
+            service: 'auth-service',
+            startDate: new \DateTimeImmutable('2025-04-28T12:00:00+00:00'),
+            endDate: new \DateTimeImmutable('2025-04-28T12:01:00+00:00'),
+            method: 'POST',
+            path: '/login',
+            statusCode: 200
+        );
 
         $em = $this->createMock(EntityManagerInterface::class);
-        $em->expects($this->once())->method('persist')->with($logEntry);
+
+        $em->expects($this->once())
+            ->method('persist')
+            ->with($this->callback(function ($entity) use ($logEntry) {
+                return $entity instanceof LogEntryDoctrine
+                    && $entity->getService() === $logEntry->getService()
+                    && $entity->getMethod() === $logEntry->getMethod()
+                    && $entity->getPath() === $logEntry->getPath()
+                    && $entity->getStatusCode() === $logEntry->getStatusCode();
+            }));
 
         $repo = new LogEntryRepository($em);
         $repo->save($logEntry);

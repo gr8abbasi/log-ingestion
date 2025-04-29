@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Log\Service;
 
+use Application\Log\DTO\LogEntryMessageDto;
 use Application\Log\Service\LogEntryPersister;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
@@ -29,28 +30,37 @@ class LogEntryPersisterTest extends TestCase
 
     public function testProcessValidLogEntry()
     {
-        $data = [
-            'service' => 'test-service',
-            'startDate' => '2025-04-01',
-            'endDate' => '2025-04-01',
-            'method' => 'GET',
-            'path' => '/test',
-            'statusCode' => 200
-        ];
+        $logDto = new LogEntryMessageDto(
+            'test-service',
+            new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+            new \DateTimeImmutable('2024-01-01T00:01:00Z'),
+            'POST',
+            '/test',
+            201
+        );
 
         $this->mockRepository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(LogEntry::class));
 
-        $this->logMessageService->process($data);
+        $this->logMessageService->process($logDto);
     }
 
     public function testFlushLogs(): void
     {
         $entry = new LogEntry(
             'test-service',
-            new \DateTimeImmutable('2025-04-01'),
-            new \DateTimeImmutable('2025-04-01'),
+            new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+            new \DateTimeImmutable('2024-01-01T00:01:00Z'),
+            'GET',
+            '/test',
+            200
+        );
+
+        $logDto = new LogEntryMessageDto(
+            'test-service',
+            new \DateTimeImmutable('2024-01-01T00:00:00Z'),
+            new \DateTimeImmutable('2024-01-01T00:01:00Z'),
             'GET',
             '/test',
             200
@@ -68,14 +78,7 @@ class LogEntryPersisterTest extends TestCase
                     && $logEntry->getStatusCode() === $entry->getStatusCode();
             }));
 
-        $this->logMessageService->process([
-            'service' => 'test-service',
-            'startDate' => '2025-04-01',
-            'endDate' => '2025-04-01',
-            'method' => 'GET',
-            'path' => '/test',
-            'statusCode' => 200
-        ]);
+        $this->logMessageService->process($logDto);
 
         $this->logMessageService->flush();
     }
