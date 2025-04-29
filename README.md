@@ -47,7 +47,7 @@ This will build and run the following services:
 * Apache Kafka and Zookeeper
 * PHPUnit
 
-![](/Users/muhammad.abbasi/Desktop/Screenshot 2025-04-29 at 18.50.58.png)
+<img width="1400" alt="Screenshot 2025-04-29 at 18 50 58" src="https://github.com/user-attachments/assets/1a9b82f1-7dd5-4cb3-b228-74516066d23e" />
 
 ### 4. Ingest Log
 ```bash
