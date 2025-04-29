@@ -7,6 +7,7 @@ namespace Tests\Unit\Infrastructure\Log\Messaging\Subscriber;
 use Application\Log\DTO\LogEntryMessageDto;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Domain\Log\ValueObject\LogEntry;
+use Infrastructure\Log\Exception\KafkaPublisherException;
 use Infrastructure\Log\Messaging\Subscriber\KafkaLogSubscriber;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -22,7 +23,6 @@ class KafkaLogSubscriberTest extends TestCase
         parent::setUp();
 
         $this->publisherMock = $this->createMock(MessagePublisherInterface::class);
-
         $this->subscriber = new KafkaLogSubscriber($this->publisherMock);
     }
 
@@ -52,6 +52,28 @@ class KafkaLogSubscriberTest extends TestCase
                         && $logDto->getStatusCode() === $logEntry->statusCode;
                 })
             );
+
+        $this->subscriber->onLogEntryReceived($event);
+    }
+
+    public function testOnLogEntryReceivedThrowsKafkaPublisherException(): void
+    {
+        $this->expectException(KafkaPublisherException::class);
+
+        $logEntry = new LogEntry(
+            service: 'error-service',
+            startDate: new \DateTimeImmutable(),
+            endDate: new \DateTimeImmutable(),
+            method: 'POST',
+            path: '/fail',
+            statusCode: 500
+        );
+
+        $event = new LogLineReceivedEvent($logEntry);
+
+        $this->publisherMock->expects($this->once())
+            ->method('publish')
+            ->willThrowException(new \RuntimeException('Kafka unavailable'));
 
         $this->subscriber->onLogEntryReceived($event);
     }

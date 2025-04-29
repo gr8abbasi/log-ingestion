@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Persistence\Repository;
 
+use Application\Log\Exception\InvalidLogEntryException;
+use Doctrine\ORM\NonUniqueResultException;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\ValueObject\LogFilters;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
@@ -15,46 +17,70 @@ readonly class LogEntryRepository implements LogEntryRepositoryInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager
-    ) {
+    )
+    {
     }
 
+    /**
+     * @throws InvalidLogEntryException
+     */
     public function save(LogEntry $logEntry): void
     {
-        $this->entityManager->persist(LogEntryMapper::toDoctrine($logEntry));
+        try {
+            $this->entityManager->persist(LogEntryMapper::toDoctrine($logEntry));
+        } catch (\Exception $e) {
+            throw InvalidLogEntryException::fromPersistError($e->getMessage());
+        }
     }
 
+    /**
+     * @throws InvalidLogEntryException
+     */
     public function flush(): void
     {
-        $this->entityManager->flush();
+        try {
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            throw InvalidLogEntryException::fromPersistError($e->getMessage());
+        }
     }
 
+    /**
+     * @throws InvalidLogEntryException
+     */
     public function countByFilters(LogFilters $filters): int
     {
-        $qb = $this->entityManager->createQueryBuilder();
+        try {
 
-        $qb->select('COUNT(l.id)')
-            ->from(LogEntryDoctrine::class, 'l');
+            $qb = $this->entityManager->createQueryBuilder();
 
-        if ($filters->getServiceNames()) {
-            $qb->andWhere('l.service IN (:services)')
-                ->setParameter('services', $filters->getServiceNames());
+            $qb->select('COUNT(l.id)')
+                ->from(LogEntryDoctrine::class, 'l');
+
+            if ($filters->getServiceNames()) {
+                $qb->andWhere('l.service IN (:services)')
+                    ->setParameter('services', $filters->getServiceNames());
+            }
+
+            if ($filters->getStatusCode()) {
+                $qb->andWhere('l.statusCode = :statusCode')
+                    ->setParameter('statusCode', $filters->getStatusCode());
+            }
+
+            if ($filters->getStartDate()) {
+                $qb->andWhere('l.startDate >= :startDate')
+                    ->setParameter('startDate', $filters->getStartDate());
+            }
+
+            if ($filters->getEndDate()) {
+                $qb->andWhere('l.endDate <= :endDate')
+                    ->setParameter('endDate', $filters->getEndDate());
+            }
+
+            return (int)$qb->getQuery()->getSingleScalarResult();
+
+        } catch (NonUniqueResultException|\Exception $e) {
+            throw InvalidLogEntryException::fromQueryError($e->getMessage());
         }
-
-        if ($filters->getStatusCode()) {
-            $qb->andWhere('l.statusCode = :statusCode')
-                ->setParameter('statusCode', $filters->getStatusCode());
-        }
-
-        if ($filters->getStartDate()) {
-            $qb->andWhere('l.startDate >= :startDate')
-                ->setParameter('startDate', $filters->getStartDate());
-        }
-
-        if ($filters->getEndDate()) {
-            $qb->andWhere('l.endDate <= :endDate')
-                ->setParameter('endDate', $filters->getEndDate());
-        }
-
-        return (int) $qb->getQuery()->getSingleScalarResult();
     }
 }

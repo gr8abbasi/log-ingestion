@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Application\Log\DTO;
 
+use Application\Log\Exception\InvalidLogEntryException;
+use DateMalformedStringException;
 use Domain\Log\Enum\LogEntry;
 
 final readonly class LogEntryMessageDto
@@ -63,10 +65,17 @@ final readonly class LogEntryMessageDto
 
     public static function fromArray(array $data): self
     {
+        try {
+            $startDate = new \DateTimeImmutable($data[LogEntry::START_DATE->value]);
+            $endDate = new \DateTimeImmutable($data[LogEntry::END_DATE->value]);
+        } catch (DateMalformedStringException $error) {
+            throw new InvalidLogEntryException("Failed to parse time string", 0, $error);
+        }
+
         return new self(
             $data[LogEntry::SERVICE->value],
-            new \DateTimeImmutable($data[LogEntry::START_DATE->value]),
-            new \DateTimeImmutable($data[LogEntry::END_DATE->value]),
+            $startDate,
+            $endDate,
             $data[LogEntry::METHOD->value],
             $data[LogEntry::PATH->value],
             $data[LogEntry::STATUS_CODE->value]

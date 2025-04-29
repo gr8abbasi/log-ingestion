@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Infrastructure\Log\Messaging\Subscriber;
 
 use Application\Log\DTO\LogEntryMessageDto;
-use Domain\Log\Enum\LogEntry;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
 use Domain\Log\Messaging\MessagePublisherInterface;
+use Infrastructure\Log\Exception\KafkaPublisherException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 readonly class KafkaLogSubscriber implements EventSubscriberInterface
@@ -23,6 +23,9 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @throws KafkaPublisherException
+     */
     public function onLogEntryReceived(LogLineReceivedEvent $event): void
     {
         $logEntry = $event->logEntry;
@@ -36,6 +39,10 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
         );
 
         //TODO: Get topic name from configuration/constant
-        $this->publisher->publish('log.alerts', $logDto);
+        try {
+            $this->publisher->publish('log.alerts', $logDto);
+        } catch (\Throwable $e) {
+            throw KafkaPublisherException::fromPublishingFailure($e->getMessage(), $e);
+        }
     }
 }

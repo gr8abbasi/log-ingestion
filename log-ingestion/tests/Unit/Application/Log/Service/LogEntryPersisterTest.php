@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Application\Log\Service;
 
 use Application\Log\DTO\LogEntryMessageDto;
+use Application\Log\Exception\InvalidLogEntryException;
 use Application\Log\Service\LogEntryPersister;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
@@ -81,6 +82,22 @@ class LogEntryPersisterTest extends TestCase
         $this->logMessageService->process($logDto);
 
         $this->logMessageService->flush();
+    }
+
+    public function testProcessInvalidLogEntryThrowsException(): void
+    {
+        $this->expectException(InvalidLogEntryException::class);
+
+        $data = [
+            'service' => '',
+            'startDate' => 'invalid-date',
+            'endDate' => 'invalid-date',
+            'method' => 'INVALID',
+            'path' => '',
+            'statusCode' => 999,
+        ];
+
+        LogEntryMessageDto::fromArray($data);
     }
 
 }
