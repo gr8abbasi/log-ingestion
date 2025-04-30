@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Log\Tailer\Event;
 
-use Domain\Log\ValueObject\LogEntry;
+use Domain\Log\Entity\LogEntry;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class LogLineReceivedEvent extends Event

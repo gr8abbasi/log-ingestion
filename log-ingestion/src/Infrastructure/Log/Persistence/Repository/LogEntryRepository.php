@@ -8,6 +8,7 @@ use Application\Log\Exception\InvalidLogEntryException;
 use Doctrine\ORM\NonUniqueResultException;
 use Domain\Log\Entity\LogEntry;
 use Domain\Log\ValueObject\LogFilters;
+use App\Domain\Log\Enum\LogFilters as FiltersEnum;
 use Domain\Log\Repository\LogEntryRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Infrastructure\Log\Persistence\Doctrine\Mapper\LogEntryMapper;
@@ -51,35 +52,27 @@ readonly class LogEntryRepository implements LogEntryRepositoryInterface
     public function countByFilters(LogFilters $filters): int
     {
         try {
-
             $qb = $this->entityManager->createQueryBuilder();
-
             $qb->select('COUNT(l.id)')
                 ->from(LogEntryDoctrine::class, 'l');
 
-            if ($filters->getServiceNames()) {
-                $qb->andWhere('l.service IN (:services)')
-                    ->setParameter('services', $filters->getServiceNames());
-            }
+            $filterExpressions = [
+                FiltersEnum::SERVICE_NAMES->value => 'l.service IN (:'. FiltersEnum::SERVICE_NAMES->value .')',
+                FiltersEnum::STATUS_CODE->value => 'l.statusCode = :'. FiltersEnum::STATUS_CODE->value,
+                FiltersEnum::START_DATE->value => 'l.startDate >= :'. FiltersEnum::START_DATE->value,
+                FiltersEnum::END_DATE->value => 'l.endDate <= :'. FiltersEnum::END_DATE->value,
+            ];
 
-            if ($filters->getStatusCode()) {
-                $qb->andWhere('l.statusCode = :statusCode')
-                    ->setParameter('statusCode', $filters->getStatusCode());
-            }
-
-            if ($filters->getStartDate()) {
-                $qb->andWhere('l.startDate >= :startDate')
-                    ->setParameter('startDate', $filters->getStartDate());
-            }
-
-            if ($filters->getEndDate()) {
-                $qb->andWhere('l.endDate <= :endDate')
-                    ->setParameter('endDate', $filters->getEndDate());
+            foreach ($filters->getActiveFilters() as $filter => $value) {
+                if (isset($filterExpressions[$filter])) {
+                    $qb->andWhere($filterExpressions[$filter])
+                        ->setParameter($filter, $value);
+                }
             }
 
             return (int)$qb->getQuery()->getSingleScalarResult();
 
-        } catch (NonUniqueResultException|\Exception $e) {
+        } catch (NonUniqueResultException | \Exception $e) {
             throw InvalidLogEntryException::fromQueryError($e->getMessage());
         }
     }

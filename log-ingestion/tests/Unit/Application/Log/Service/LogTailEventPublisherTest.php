@@ -7,7 +7,7 @@ namespace Tests\Unit\Application\Log\Service;
 use Application\Log\Service\LogTailEventPublisher;
 use Domain\Log\Tailer\LogTailerInterface;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
-use Domain\Log\ValueObject\LogEntry;
+use Domain\Log\Entity\LogEntry;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;

@@ -20,7 +20,8 @@ readonly class LogTailEventPublisher implements LogTailEventPublisherInterface
     {
         foreach ($this->logTailer->tail() as $logEntry) {
             $this->eventDispatcher->dispatch(new LogLineReceivedEvent($logEntry));
-            echo "New log line received event fired for service: <$logEntry->service>\n"; //TODO: use proper logging
+            $service = $logEntry->getService();
+            echo "New log line received event fired for service: <$service>\n"; //TODO: use proper logging
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Tests\Unit\Infrastructure\Log\Messaging\Subscriber;
 
 use Application\Log\DTO\LogEntryMessageDto;
 use Domain\Log\Tailer\Event\LogLineReceivedEvent;
-use Domain\Log\ValueObject\LogEntry;
+use Domain\Log\Entity\LogEntry;
 use Infrastructure\Log\Exception\KafkaPublisherException;
 use Infrastructure\Log\Messaging\Subscriber\KafkaLogSubscriber;
 use PHPUnit\Framework\TestCase;
@@ -44,12 +44,12 @@ class KafkaLogSubscriberTest extends TestCase
             ->with(
                 $this->equalTo('log.alerts'),
                 $this->callback(function (LogEntryMessageDto $logDto) use ($logEntry) {
-                    return $logDto->getService() === $logEntry->service
-                        && $logDto->getStartDate() == $logEntry->startDate
-                        && $logDto->getEndDate() == $logEntry->endDate
-                        && $logDto->getMethod() === $logEntry->method
-                        && $logDto->getPath() === $logEntry->path
-                        && $logDto->getStatusCode() === $logEntry->statusCode;
+                    return $logDto->getService() === $logEntry->getService()
+                        && $logDto->getStartDate() == $logEntry->getStartDate()
+                        && $logDto->getEndDate() == $logEntry->getEndDate()
+                        && $logDto->getMethod() === $logEntry->getMethod()
+                        && $logDto->getPath() === $logEntry->getPath()
+                        && $logDto->getStatusCode() === $logEntry->getStatusCode();
                 })
             );
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Infrastructure\Log\Parser;
 
-use Domain\Log\ValueObject\LogEntry;
+use Domain\Log\Entity\LogEntry;
 use Infrastructure\Log\Offset\LogOffsetTracker;
 
 class SimpleLogParser implements LogParserInterface

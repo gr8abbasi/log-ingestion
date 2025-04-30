@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Log\Tailer;
 
-use Domain\Log\ValueObject\LogEntry;
+use Domain\Log\Entity\LogEntry;
 
 interface LogTailerInterface
 {

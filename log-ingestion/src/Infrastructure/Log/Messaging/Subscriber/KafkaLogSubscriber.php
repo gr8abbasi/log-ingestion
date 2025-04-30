@@ -30,12 +30,12 @@ readonly class KafkaLogSubscriber implements EventSubscriberInterface
     {
         $logEntry = $event->logEntry;
         $logDto = new LogEntryMessageDto(
-            $logEntry->service,
-            $logEntry->startDate,
-            $logEntry->endDate,
-            $logEntry->method,
-            $logEntry->path,
-            $logEntry->statusCode,
+            $logEntry->getService(),
+            $logEntry->getStartDate(),
+            $logEntry->getEndDate(),
+            $logEntry->getMethod(),
+            $logEntry->getPath(),
+            $logEntry->getStatusCode(),
         );
 
         //TODO: Get topic name from configuration/constant
