@@ -49,21 +49,24 @@ This will build and run the following services:
 
 <img width="1400" alt="Screenshot 2025-04-29 at 18 50 58" src="https://github.com/user-attachments/assets/1a9b82f1-7dd5-4cb3-b228-74516066d23e" />
 
-### 4. Ingest Log
+### 4. Consume Kafka Messages
+```bash
+docker-compose exec php php bin/console log-ingestion:consume-kafka
+```
+Run this command in terminal, it's responsible to consume messages from **Kafka** and persist to MySql databases in batches.
+
+For first time this command might return error **[Kafka Error] Broker: Unknown topic or partition**
+which completely fine as topic is created by **ingest-logs** command.
+
+### 5. Ingest Log
 ```bash
 docker-compose exec php php bin/console log-ingestion:ingest-logs
 ```
-This will continue watching for the log and fire an event and publish to **Kafka** as soon as there is a new line add/written in log file.
+Run this command in new tab in terminal to better see log-ingestion and messages consumption, this will continue watching for the log and fire an event and publish to **Kafka** as soon as there is a new line add/written in log file.
 
 Sample log file is located in symfony project root `/log-ingestion/data/logs.log` and offset tracking is done in `/log-ingestion/data/logs.log.offset`
 
 **Tip:** Once log file is processed successfully and offset is update, in order to re-run same log file e.g. for testing delete the offset file.
-
-### 5. Consume Kafka Messages
-```bash
-docker-compose exec php php bin/console log-ingestion:consume-kafka
-```
-It's responsible to consume messages from **Kafka** and persist to MySql databases in batches.
 
 ### 6. Access the application
 Once the containers are up and running, the application should be accessible at http://localhost:8000 or wherever your Docker setup is mapped.
@@ -76,8 +79,11 @@ To run unit tests:
 ```bash
 docker-compose run --rm phpunit
 ```
+### 8. Packaging using Composer
 
-### 8. Helpful Kafka Commands
+Application is packaged using composer, `composer.json` have everything setup.
+
+### 9. Helpful Kafka Commands
 
 - Run below command to use kafka bash in container:
 
