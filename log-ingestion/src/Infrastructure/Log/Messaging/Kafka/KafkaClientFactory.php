@@ -9,14 +9,14 @@ use RdKafka\Producer;
 
 class KafkaClientFactory
 {
-    public static function createProducer(string $brokers): Producer
+    public function createProducer(string $brokers): Producer
     {
         $conf = new \RdKafka\Conf();
         $conf->set('metadata.broker.list', $brokers);
         return new Producer($conf);
     }
 
-    public static function createConsumer(string $brokers): KafkaConsumer
+    public function createConsumer(string $brokers): KafkaConsumer
     {
         $conf = new \RdKafka\Conf();
         $conf->set('metadata.broker.list', $brokers);

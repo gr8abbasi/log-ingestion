@@ -16,11 +16,11 @@ class KafkaMessagePublisher implements MessagePublisherInterface
     private array $topics = [];
 
     public function __construct(
-        KafkaClientFactory $clientFactory,
+        private KafkaClientFactory $clientFactory,
         string $brokers,
         private string $dlqTopic = 'log.alerts.dlq'
     ) {
-        $this->producer = $clientFactory::createProducer($brokers);
+        $this->producer = $this->clientFactory->createProducer($brokers);
     }
 
     public function publish(string $topic, LogEntryMessageDto $logDto): void

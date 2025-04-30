@@ -10,14 +10,11 @@ use RdKafka\Producer;
 
 class KafkaDlqService implements DLQStrategyInterface
 {
-    private Producer $producer;
-
-    public function __construct(string $brokers, private string $dlqTopic = 'log.alerts.dlq')
-    {
-        $conf = new \RdKafka\Conf();
-        $conf->set('metadata.broker.list', $brokers);
-        $this->producer = new Producer($conf);
-    }
+    public function __construct(
+        private KafkaTopicFactoryInterface $topicFactory,
+        private Producer $producer,
+        private string $dlqTopic = 'log.alerts.dlq'
+    ) {}
 
     public function handle(Message $message, \Throwable $exception): void
     {
@@ -28,7 +25,7 @@ class KafkaDlqService implements DLQStrategyInterface
             'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
         ];
 
-        $topic = $this->producer->newTopic($this->dlqTopic);
+        $topic = $this->topicFactory->createTopic($this->dlqTopic);
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($payload));
         $this->producer->poll(0);
 

@@ -5,65 +5,66 @@ declare(strict_types=1);
 namespace Tests\Unit\Infrastructure\Log\Messaging\Kafka;
 
 use Infrastructure\Log\Messaging\Kafka\KafkaDlqService;
+use Infrastructure\Log\Messaging\Kafka\KafkaTopicInterface;
+use Infrastructure\Log\Messaging\Kafka\KafkaTopicFactoryInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RdKafka\Message;
 use RdKafka\Producer;
-use RdKafka\Topic;
-use Exception;
 
 class KafkaDlqServiceTest extends TestCase
 {
-    private MockObject&Producer $mockProducer;
-    private MockObject&Topic $mockTopic;
-    private KafkaDlqService $kafkaDlqService;
+    private MockObject&KafkaTopicFactoryInterface $topicFactory;
+    private MockObject&KafkaTopicInterface $topic;
+    private MockObject&Producer $producer;
+    private KafkaDlqService $dlqService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->mockProducer = $this->createMock(Producer::class);
+        $this->topicFactory = $this->createMock(KafkaTopicFactoryInterface::class);
+        $this->topic = $this->createMock(KafkaTopicInterface::class);
+        $this->producer = $this->createMock(Producer::class);
 
-        $this->mockTopic = $this->createMock(Topic::class);
+        $this->topicFactory
+            ->method('createTopic')
+            ->with('log.alerts.dlq')
+            ->willReturn($this->topic);
 
-        $this->mockProducer->expects($this->any())
-            ->method('newTopic')
-            ->willReturn($this->mockTopic);
-
-        $this->kafkaDlqService = new KafkaDlqService('kafka:9092');
+        $this->dlqService = new KafkaDlqService(
+            topicFactory: $this->topicFactory,
+            producer: $this->producer,
+            dlqTopic: 'log.alerts.dlq'
+        );
     }
 
-    public function testHandle()
+    public function testHandleSendsToDlq(): void
     {
-        $mockMessage = $this->createMock(Message::class);
-        $mockMessage->payload = 'test-payload';
-        $mockMessage->topic_name = 'test-topic';
+        $message = new Message();
+        $message->payload = 'test-payload';
+        $message->topic_name = 'test-topic';
 
-        $mockException = $this->createMock(Exception::class);  // Mock Exception directly
-//        $mockException->method('getMessage')
-//            ->willReturn('Test Exception Message');
+        $exception = new \RuntimeException('Test Exception Message');
 
-        $this->mockTopic->expects($this->once())
+        $this->topic->expects($this->once())
             ->method('produce')
             ->with(
-                $this->equalTo(RD_KAFKA_PARTITION_UA),
-                $this->equalTo(0),
-                $this->callback(function ($payload) {
-                    $expectedPayload = [
-                        'error' => 'Test Exception Message',
-                        'payload' => 'test-payload',
-                        'topic' => 'test-topic',
-                        'timestamp' => (new \DateTimeImmutable())->format(DATE_ATOM),
-                    ];
-                    $decodedPayload = json_decode($payload, true);
-                    return $decodedPayload === $expectedPayload;
+                RD_KAFKA_PARTITION_UA,
+                0,
+                $this->callback(function (string $jsonPayload) use ($message, $exception) {
+                    $decoded = json_decode($jsonPayload, true);
+                    return $decoded['error'] === $exception->getMessage()
+                        && $decoded['payload'] === $message->payload
+                        && $decoded['topic'] === $message->topic_name
+                        && isset($decoded['timestamp']);
                 })
             );
 
-        $this->mockProducer->expects($this->once())
+        $this->producer->expects($this->once())
             ->method('poll')
-            ->with($this->equalTo(0));
+            ->with(0);
 
-        $this->kafkaDlqService->handle($mockMessage, $mockException);
+        $this->dlqService->handle($message, $exception);
     }
 }

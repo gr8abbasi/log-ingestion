@@ -68,9 +68,11 @@ services:
             $dlqStrategy: '@Infrastructure\Log\Messaging\Kafka\KafkaDlqService'
             $topic: '%topic_name%'
 
+    Infrastructure\Log\Messaging\Kafka\KafkaClientFactory: ~
+
     kafka.consumer:
         class: RdKafka\KafkaConsumer
-        factory: [ 'Infrastructure\Log\Messaging\Kafka\KafkaClientFactory', 'createConsumer' ]
+        factory: [ '@Infrastructure\Log\Messaging\Kafka\KafkaClientFactory', 'createConsumer' ]
         arguments:
             $brokers: '%kafka_brokers%'
 
@@ -80,6 +82,13 @@ services:
         arguments:
             $brokers: '%kafka_brokers%'
             $dlqTopic: '%dlq_topic%'
+            $producer: '@kafka.producer'
+
+    kafka.producer:
+        class: RdKafka\Producer
+        factory: [ '@Infrastructure\Log\Messaging\Kafka\KafkaClientFactory', 'createProducer' ]
+        arguments: [ '%kafka_brokers%' ]
+    RdKafka\Producer: '@kafka.producer'
 
     Application\Log\Service\LogEntryPersister:
         arguments:

@@ -112,6 +112,8 @@ docker-compose exec kafka kafka-consumer-groups.sh \
 ```
 
 ## Future Improvements
+- Configurable batch size for publishing and consumption of messages
+- Improve API response
 - Asynchronous writing to the database (currently written from the consumer thread).
 - Asynchronous retries or error handling that block processing if something fails.
 - Environment specific configuration files

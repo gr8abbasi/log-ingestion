@@ -6,7 +6,6 @@ namespace Infrastructure\Log\Messaging\Kafka;
 
 use Application\Log\DTO\LogEntryMessageDto;
 use RdKafka\KafkaConsumer;
-use RdKafka\Message;
 use Application\Log\Service\LogEntryPersister;
 use Application\Log\DLQ\DLQStrategyInterface;
 
